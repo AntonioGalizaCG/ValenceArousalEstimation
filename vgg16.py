@@ -37,6 +37,6 @@ def vgg16(height, width, depth):
     model.add(MaxPool2D(pool_size=(2,2),strides=(2,2)))
     model.add(Flatten())
     model.add(Dense(units=4096,activation="relu"))
-    model.add(Dense(units=4096,activation="relu"))
+    model.add(Dense(units=2048,activation="relu"))
     model.add(Dense(units=1, activation="linear"))
     return model

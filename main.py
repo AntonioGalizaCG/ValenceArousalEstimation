@@ -38,11 +38,11 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from vgg16 import vgg16
 
-physical_devices = tensorflow.config.list_physical_devices('GPU')
-tensorflow.config.experimental.set_memory_growth(physical_devices[0],
-                                                 enable=True)
+# physical_devices = tensorflow.config.list_physical_devices('GPU')
+# tensorflow.config.experimental.set_memory_growth(physical_devices[0],
+#                                                  enable=True)
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-t", "--training", type=str, required=True,
@@ -73,8 +73,7 @@ if training:
 	    restore_best_weights=True
 	)
 	train_file = "data/dataset_"+extension+".csv"
-	image_dir = "/home/antonio/Downloads/AffectNet-8Labels/train_set/images"
-
+	image_dir = "/home/tony/Downloads/AffectNet-8Labels/train_set/images"
 	train_label_df = pd.read_csv(train_file, delimiter=',',
 	                             header=1,
 								 names=['id', 'score'],
@@ -109,7 +108,7 @@ if training:
 	                                          batch_size=10,
 											  subset="validation")
 
-	opt = Adam(learning_rate=1e-3, decay=1e-3/200) #RMSprop(learning_rate=0.001)
+	opt = Adam(learning_rate=1e-3, decay=1e-3/10) #RMSprop(learning_rate=0.001)
 
 	net.compile(loss="mse", optimizer=opt)
 
@@ -118,10 +117,10 @@ if training:
 			epochs=10,
 			callbacks=[brake])
 
-	net.save_weights("/models/model-"+extension+"_big.h5")
+	net.save_weights("models/model-"+extension+"_big.h5")
 
 else:
-	net.load_weights("/models/model-"+extension+"_big.h5")
+	net.load_weights("models/model-"+extension+"_big.h5")
 	img=np.array([cv2.resize(cv2.imread("/home/antonio/Downloads/AffectNet-8Labels/train_set/images/340600.jpg"),(112,112))/255])
 	print(net.predict(img)[0][0]*2-1)
 	print(np.load("/home/antonio/Downloads/AffectNet-8Labels/train_set/annotations/340600_"+extension+".npy"))
