@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import glob
 import cv2
+import getpass
 
 import tensorflow
 
@@ -26,11 +27,11 @@ from tensorflow.keras.layers import (BatchNormalization,
                                      Activation,
                                      Dropout,
                                      Dense,
-                                     Flatten,
                                      Input,
                                      add,
                                      concatenate,
                                      average)
+                                     Flatten,
 
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.data import Dataset
@@ -96,7 +97,7 @@ if training:
         restore_best_weights=True
     )
     train_file = "data/small_dataset.csv"
-    image_dir = "/home/tony/Downloads/AffectNet-8Labels/train_set/images"
+    image_dir = "/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/images"
     train_label_df = pd.read_csv(train_file, delimiter=',',
                                  header=1,
                                  names=['id', 'score_val', 'score_aro'],
@@ -150,9 +151,9 @@ else:
             net.load_weights("./checkpoints/"+i)
             for n in range(10):
                 try:
-                    img=np.array([cv2.resize(cv2.imread("/home/tony/Downloads/AffectNet-8Labels/train_set/images/34050"+str(n)+".jpg"),(96,96))/255])
+                    img=np.array([cv2.resize(cv2.imread("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/images/34050"+str(n)+".jpg"),(96,96))/255])
                     print("predicted: ", net.predict(img)[0][0], net.predict(img)[0][1])
-                    print("actual: ", np.load("/home/tony/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_val.npy"), np.load("/home/tony/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_aro.npy"))
+                    print("actual: ", np.load("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_val.npy"), np.load("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_aro.npy"))
                 except:
                     passannotation############################################################################
 #preds = model.predict([pv])
