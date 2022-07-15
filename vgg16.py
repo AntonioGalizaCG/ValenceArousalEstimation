@@ -69,7 +69,7 @@ def vgg16(height, width, depth):
 
 	x = MaxPool2D(pool_size=(2, 2), strides=(2,2))(x)
 
-	#x = Flatten()(x2)
+	x = Flatten()(x)
 	x = Dense(4096)(x)
 	x = Activation("relu")(x)
 	x = Dropout(.5)(x)

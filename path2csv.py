@@ -10,10 +10,10 @@ image_path = "/home/tony/Downloads/AffectNet-8Labels/train_set"
 #         file.write(i + ", " + str(annotation)+"\n")
 #     file.close()
 
-with open('data/dataset.csv',"a") as file:
+with open('data/small_dataset.csv',"a") as file:
     file.write("id, score_val, score_aro\n")
-    for i in os.listdir(image_path+"/images/"):
-        annotation_val = (float(np.load(image_path+"/annotations/"+i[:-4]+"_val.npy").tolist())+1)/2
-        annotation_aro = (float(np.load(image_path+"/annotations/"+i[:-4]+"_aro.npy").tolist())+1)/2
+    for i in os.listdir(image_path+"/images/")[:1000]:
+        annotation_val = float(np.load(image_path+"/annotations/"+i[:-4]+"_val.npy").tolist())
+        annotation_aro = float(np.load(image_path+"/annotations/"+i[:-4]+"_aro.npy").tolist())
         file.write(i+", "+str(annotation_val)+", " +str(annotation_aro)+"\n")
     file.close()
