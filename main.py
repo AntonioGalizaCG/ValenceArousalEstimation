@@ -30,8 +30,8 @@ from tensorflow.keras.layers import (BatchNormalization,
                                      Input,
                                      add,
                                      concatenate,
-                                     average)
                                      Flatten,
+                                     average)
 
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.data import Dataset
@@ -40,12 +40,14 @@ from tensorflow.data import Dataset
 from keras.preprocessing.image import ImageDataGenerator
 
 from vgg16 import vgg16#, create_cnn
+import matplotlib.pyplot as plt
 
-# physical_devices = tensorflow.config.list_physical_devices('GPU')
-# tensorflow.config.experimental.set_memory_growth(physical_devices[0],
-#                                                  enable=True)
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+physical_devices = tensorflow.config.list_physical_devices('GPU')
+tensorflow.config.experimental.set_memory_growth(physical_devices[0],
+                                                 enable=True)
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-t", "--training", type=str, required=True,
@@ -118,7 +120,7 @@ if training:
                                               y_col=["score_val","score_aro"],
                                               class_mode="raw",
                                               target_size=(96, 96),
-                                              batch_size=80,
+                                              batch_size=4,
                                               subset="training")
 
     v_gen = train_datagen.flow_from_dataframe(dataframe=train_label_df,
@@ -127,33 +129,71 @@ if training:
                                               y_col=["score_val","score_aro"],
                                               class_mode="raw",
                                               target_size=(96, 96),
-                                              batch_size=80,
+                                              batch_size=4,
                                               subset="validation")
 
-    opt = Adam(learning_rate=1e-5, decay=1e-5/20) #RMSprop(learning_rate=0.0001)
+    opt = Adam(learning_rate=1e-5, decay=1e-5/10) #RMSprop(learning_rate=0.0001)
     for i in range(3):print(t_gen[i])
 
     net.compile(loss=CCC, optimizer=opt)
 
     net.fit(t_gen,
             validation_data=v_gen,
-            epochs=20,
+            epochs=10,
             callbacks=[saver])
 
     net.save_weights("models/model_big.h5")
 
 else:
-    for i in os.listdir("./checkpoints"):
-        if i[0]!=".":
-            print("###########################################################")
-            print("#   WEIGHTS:", i,)
-            print("###########################################################")
-            net.load_weights("./checkpoints/"+i)
-            for n in range(10):
-                try:
-                    img=np.array([cv2.resize(cv2.imread("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/images/34050"+str(n)+".jpg"),(96,96))/255])
-                    print("predicted: ", net.predict(img)[0][0], net.predict(img)[0][1])
-                    print("actual: ", np.load("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_val.npy"), np.load("/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/annotations/34050"+str(n)+"_aro.npy"))
-                except:
-                    passannotation############################################################################
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    tensorflow.get_logger().setLevel('ERROR')
+    image_path = "/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/images/"
+    labels_path = "/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train_set/annotations/"
+    # for i in os.listdir("./checkpoints"):
+    #     if i[0]!=".":
+    i = "weights-012-4.4402.hdf5"
+    net.load_weights("./checkpoints/"+i)
+    average_error_val = 0
+    average_error_aro = 0
+    act_val_hist = []
+    act_aro_hist = []
+    pred_val_hist = []
+    pred_aro_hist = []
+    for image in os.listdir(image_path)[:100]:
+        try:
+            print(image_path+image)
+            img = np.array([cv2.resize(cv2.imread(image_path+image),(96,96))/255])
+            pred_val = float(net.predict(img)[0][0])
+            pred_aro =  float(net.predict(img)[0][1])
+            actual_val = float(np.load(labels_path + image[:-4] + "_val.npy"))
+            actual_aro = float(np.load(labels_path + image[:-4] + "_aro.npy"))
+            error_val = abs(actual_val-pred_val)#/actual_val
+            error_aro = abs(actual_aro-pred_aro)#/actual_aro
+            act_val_hist.append(actual_val)
+            act_aro_hist.append(actual_aro)
+            pred_val_hist.append(pred_val)
+            pred_aro_hist.append(pred_aro)
+            average_error_val += error_val
+            average_error_aro += error_aro
+            # print("predicted: ", pred_val, pred_aro)
+            # print("actual: ",actual_val, actual_aro)
+            # print("error: ", error_val, error_aro)
+            # print("------------------------------------------------------")
+
+        except Exception as e:
+            print(e)
+            pass
+    #print("AVG ERROR:",,average_error_aro/10)
+
+    fig, axs = plt.subplots(2)
+    fig.suptitle("Val_Aro_Comp_weights_" + str(i))
+    axs[0].plot(act_val_hist, label="act val")
+    axs[0].plot(pred_val_hist, label="pred val")
+    axs[1].plot(act_aro_hist, label="act aro")
+    axs[1].plot(pred_aro_hist, label="pred aro")
+    fig.text(0.3, 0.8, "Average error: " + str(int(1000*average_error_val/500)/1000), size=15, color='purple')
+    leg = fig.legend(loc='upper center')
+    fig.savefig("Val_Aro_Comp_weights_" + str(i)+".png")
+
+                    ############################################################################
 #preds = model.predict([pv])
