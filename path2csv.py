@@ -14,7 +14,7 @@ image_path = "/home/"+str(getpass.getuser())+"/Downloads/AffectNet-8Labels/train
 
 with open('data/small_dataset.csv',"a") as file:
     file.write("id, score_val, score_aro\n")
-    for i in os.listdir(image_path+"/images/")[:10000]:
+    for i in os.listdir(image_path+"/images/")[:100000]:
         annotation_val = float(np.load(image_path+"/annotations/"+i[:-4]+"_val.npy").tolist())
         annotation_aro = float(np.load(image_path+"/annotations/"+i[:-4]+"_aro.npy").tolist())
         file.write(i+", "+str(annotation_val)+", " +str(annotation_aro)+"\n")
